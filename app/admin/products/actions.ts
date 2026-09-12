@@ -137,7 +137,6 @@ export async function updateVariantStock(variantId: string, productId: string, f
 export async function archiveProduct(productId: string) {
   const supabase = await createClient()
 
-  // サーバー側でも念のため在庫を再確認する
   const { data: variants } = await supabase
     .from('product_variants')
     .select('stock_quantity')
@@ -145,15 +144,29 @@ export async function archiveProduct(productId: string) {
 
   const allSoldOut = variants && variants.length > 0 && variants.every((v) => v.stock_quantity === 0)
 
+  console.log('allSoldOut:', allSoldOut, 'variants:', variants)
+
   if (!allSoldOut) {
     redirect(`/admin/products/${productId}?error=notsoldout`)
   }
 
-  await supabase.from('products').update({ is_active: false }).eq('id', productId)
+  const { error, data } = await supabase
+    .from('products')
+    .update({ is_active: false })
+    .eq('id', productId)
+    .select()
+
+  console.log('update結果 error:', error, 'data:', data)
+
+  if (error || !data || data.length === 0) {
+    console.error('アーカイブ処理に失敗しました（0件更新の可能性）', error)
+    redirect(`/admin/products/${productId}?error=archivefailed`)
+  }
 
   revalidatePath(`/products/${productId}`)
   revalidatePath('/')
   revalidatePath('/admin/products')
+  revalidatePath('/admin/products/archived')
 
   redirect('/admin/products')
 }
@@ -170,3 +183,4 @@ export async function restoreProduct(productId: string) {
 
   redirect('/admin/products/archived')
 }
+
