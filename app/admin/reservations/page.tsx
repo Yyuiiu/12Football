@@ -70,9 +70,7 @@ export default async function ReservationList() {
                 <p className="text-sm text-gray-500">
                   {r.product_variants?.products?.name} / {formatSize(r.product_variants.size)}
                 </p>
-                <p className="text-sm text-gray-500">
-                  {r.product_variants?.products?.name} / {r.product_variants?.size}cm
-                </p>
+                
               </div>
 
               <div className="flex items-center gap-2">
