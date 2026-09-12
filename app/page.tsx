@@ -11,7 +11,7 @@ export const revalidate = 0
 export default async function Home() {
   const { data: products, error } = await supabase
     .from('products')
-    .select('*')
+    .select('*, product_variants(size, stock_quantity)')
     .eq('is_active', true)
 
   return (
