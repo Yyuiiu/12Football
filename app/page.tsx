@@ -1,9 +1,12 @@
 //app/page.tsx
+//商品一覧ページ
 
 
 import { supabase } from '@/lib/supabase'
 import { Product } from '@/types/product'
 import ProductCard from '@/components/ProductCard'
+
+export const revalidate = 0
 
 export default async function Home() {
   const { data: products, error } = await supabase

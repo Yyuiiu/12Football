@@ -1,8 +1,11 @@
 // app/admin/products/[id]/page.tsx
-//商品情報編集ページ
+//各商品情報編集ページ
+
 import { createClient } from '@/lib/supabase/server'
 import { updateProduct, addVariant, updateVariantStock } from '../actions'
 import AdminNav from '@/components/AdminNav'
+
+export const revalidate = 0
 
 export default async function EditProductPage({
   params,
