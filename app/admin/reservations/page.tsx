@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { updateReservationStatus } from './actions'
 import AdminNav from '@/components/AdminNav'
+import { formatSize } from '@/lib/format'
 
 type ReservationRow = {
   id: string
@@ -66,6 +67,9 @@ export default async function ReservationList() {
                   {r.customer_name} ・ {r.phone}
                 </p>
                 <p className="text-xs text-gray-400">{r.email}</p>
+                <p className="text-sm text-gray-500">
+                  {r.product_variants?.products?.name} / {formatSize(r.product_variants.size)}
+                </p>
                 <p className="text-sm text-gray-500">
                   {r.product_variants?.products?.name} / {r.product_variants?.size}cm
                 </p>
