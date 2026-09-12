@@ -16,7 +16,7 @@ export default async function Home() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">商品一覧</h1>
+      <h1 className="text-2xl font-bold mb-4">商品j一覧</h1>
 
       {error && <p className="text-red-500">エラー: {error.message}</p>}
 
