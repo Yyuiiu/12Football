@@ -29,7 +29,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="text-sm text-gray-500">{product.brand}</p>
           <p className="font-medium">{product.name}</p>
           {inStockSizes.length > 0 && (
-            <p className="text-xs text-gray-400 mt-0.5">{inStockSizes.map(formatSize).join(', ')}</p>
+          <p className="text-xs text-gray-400 mt-0.5">Size:{inStockSizes.map(formatSize).join(', ')}</p>
           )}
           <p className="text-lg mt-1">NT${product.price}</p>
         </div>
