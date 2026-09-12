@@ -4,6 +4,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 export async function createProduct(formData: FormData) {
   const supabase = await createClient()
@@ -70,6 +71,9 @@ export async function updateProduct(productId: string, formData: FormData) {
     redirect(`/admin/products/${productId}?error=1`)
   }
 
+  revalidatePath(`/products/${productId}`)
+  revalidatePath('/')
+
   redirect('/admin/products')
 }
 
@@ -89,6 +93,9 @@ export async function addVariant(productId: string, formData: FormData) {
   if (error) {
     redirect(`/admin/products/${productId}?error=1`)
   }
+
+  revalidatePath(`/products/${productId}`)
+  revalidatePath('/')
 
   redirect(
     `/admin/products/${productId}?updated_size=${encodeURIComponent(size)}&updated_qty=${stock_quantity}`
@@ -111,6 +118,9 @@ export async function updateVariantStock(variantId: string, productId: string, f
   if (error || !updated) {
     redirect(`/admin/products/${productId}?error=1`)
   }
+
+  revalidatePath(`/products/${productId}`)
+  revalidatePath('/')
 
   redirect(
     `/admin/products/${productId}?updated_size=${encodeURIComponent(updated.size)}&updated_qty=${updated.stock_quantity}`
