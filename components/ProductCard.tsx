@@ -15,6 +15,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="p-3">
           <p className="text-sm text-gray-500">{product.brand}</p>
           <p className="font-medium">{product.name}</p>
+          <p className="font-medium">{product.size}</p>
           <p className="text-lg mt-1">NT${product.price}</p>
         </div>
       </div>

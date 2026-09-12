@@ -3,6 +3,7 @@ export type Product = {
   name: string
   brand: string
   price: number
+  size: number
   image_url: string | null
 }
 
