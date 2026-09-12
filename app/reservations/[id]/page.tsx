@@ -2,6 +2,7 @@
 //予約確認ページ
 
 import { createClient } from '@/lib/supabase/server'
+import { formatSize } from '@/lib/format'
 
 type ReservationDetail = {
   id: string
@@ -63,7 +64,7 @@ export default async function ReservationConfirmation({
           <p className="text-sm text-gray-500">{product.brand}</p>
           <p className="font-medium">{product.name}</p>
           <p className="text-sm text-gray-500">
-            サイズ {reservation.product_variants.size}cm ・ NT${product.price}
+            サイズ {formatSize(reservation.product_variants.size)} ・ NT${product.price}
           </p>
         </div>
       </div>

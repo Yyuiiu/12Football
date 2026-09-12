@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import AdminNav from '@/components/AdminNav'
 import { archiveProduct } from './actions'
+import { formatSize } from '@/lib/format'
 
 export default async function AdminProductList() {
   const supabase = await createClient()
@@ -33,7 +34,7 @@ export default async function AdminProductList() {
       {error && <p className="text-red-500">エラー: {error.message}</p>}
 
       <div className="flex flex-col gap-2">
-                {products?.map((product) => {
+        {products?.map((product) => {
           const variants = product.product_variants as { size: string; stock_quantity: number }[]
           const allSoldOut = variants.length > 0 && variants.every((v) => v.stock_quantity === 0)
           const inStockSizes = variants.filter((v) => v.stock_quantity >= 1).map((v) => v.size)
@@ -56,7 +57,7 @@ export default async function AdminProductList() {
                   <p className="font-medium">{product.name}</p>
                   <p className="text-sm text-gray-500">{product.brand}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {inStockSizes.length > 0 ? inStockSizes.join(', ') + 'cm' : '在庫なし'}
+                    {inStockSizes.length > 0 ? inStockSizes.map(formatSize).join(', ') : '在庫なし'}
                   </p>
                 </div>
               </Link>
