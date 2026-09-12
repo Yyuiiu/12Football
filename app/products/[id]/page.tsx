@@ -24,6 +24,10 @@ export default async function ProductDetail({
   if (error || !product) {
     return <p className="p-6 text-red-500">商品が見つかりませんでした</p>
   }
+  
+  if (!product.is_active) {
+    return <p className="p-6 text-gray-500">この商品は現在お取り扱いしておりません</p>
+  }
 
   const typedProduct = product as ProductWithVariants
 

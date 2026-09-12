@@ -133,3 +133,40 @@ export async function updateVariantStock(variantId: string, productId: string, f
   )
 }
 
+// 商品をアーカイブする（全サイズ在庫0の場合のみ許可）
+export async function archiveProduct(productId: string) {
+  const supabase = await createClient()
+
+  // サーバー側でも念のため在庫を再確認する
+  const { data: variants } = await supabase
+    .from('product_variants')
+    .select('stock_quantity')
+    .eq('product_id', productId)
+
+  const allSoldOut = variants && variants.length > 0 && variants.every((v) => v.stock_quantity === 0)
+
+  if (!allSoldOut) {
+    redirect(`/admin/products/${productId}?error=notsoldout`)
+  }
+
+  await supabase.from('products').update({ is_active: false }).eq('id', productId)
+
+  revalidatePath(`/products/${productId}`)
+  revalidatePath('/')
+  revalidatePath('/admin/products')
+
+  redirect('/admin/products')
+}
+
+// アーカイブした商品を元に戻す
+export async function restoreProduct(productId: string) {
+  const supabase = await createClient()
+
+  await supabase.from('products').update({ is_active: true }).eq('id', productId)
+
+  revalidatePath(`/products/${productId}`)
+  revalidatePath('/')
+  revalidatePath('/admin/products/archived')
+
+  redirect('/admin/products/archived')
+}
