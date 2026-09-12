@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
+//商品を追加
 export async function createProduct(formData: FormData) {
   const supabase = await createClient()
 
@@ -17,7 +18,6 @@ export async function createProduct(formData: FormData) {
 
   let image_url: string | null = null
 
-  // 画像が選択されていた場合だけアップロード処理をする
   if (imageFile && imageFile.size > 0) {
     const fileExt = imageFile.name.split('.').pop()
     const fileName = `${crypto.randomUUID()}.${fileExt}`
@@ -37,20 +37,26 @@ export async function createProduct(formData: FormData) {
 
   const { data: store } = await supabase.from('stores').select('id').single()
 
-  const { error } = await supabase.from('products').insert({
-    name,
-    brand,
-    category,
-    price,
-    image_url,
-    store_id: store?.id,
-  })
+  const { data: newProduct, error } = await supabase
+    .from('products')
+    .insert({
+      name,
+      brand,
+      category,
+      price,
+      image_url,
+      store_id: store?.id,
+    })
+    .select('id')
+    .single()
 
-  if (error) {
+  if (error || !newProduct) {
     redirect('/admin/products/new?error=1')
   }
 
-  redirect('/admin/products')
+  revalidatePath('/')
+
+  redirect(`/admin/products/${newProduct.id}?created=1`)
 }
 
 // 商品を追加・商品情報を編集
@@ -74,7 +80,7 @@ export async function updateProduct(productId: string, formData: FormData) {
   revalidatePath(`/products/${productId}`)
   revalidatePath('/')
 
-  redirect('/admin/products')
+  redirect(`/admin/products/${productId}?product_updated=1`)
 }
 
 // サイズを新しく追加する
@@ -126,3 +132,4 @@ export async function updateVariantStock(variantId: string, productId: string, f
     `/admin/products/${productId}?updated_size=${encodeURIComponent(updated.size)}&updated_qty=${updated.stock_quantity}`
   )
 }
+

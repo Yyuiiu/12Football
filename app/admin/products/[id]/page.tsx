@@ -12,10 +12,15 @@ export default async function EditProductPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ updated_size?: string; updated_qty?: string }>
+  searchParams: Promise<{
+    updated_size?: string
+    updated_qty?: string
+    created?: string
+    product_updated?: string
+  }>
 }) {
   const { id } = await params
-  const { updated_size, updated_qty } = await searchParams
+  const { updated_size, updated_qty, created, product_updated } = await searchParams
   const supabase = await createClient()
 
   const { data: product } = await supabase
@@ -37,6 +42,18 @@ export default async function EditProductPage({
       <AdminNav backHref="/admin/products" backLabel="商品一覧" />
 
       <h1 className="text-xl font-bold mb-4">商品編集</h1>
+
+      {created && (
+        <div className="bg-green-50 text-green-700 text-sm rounded-md px-3 py-2 mb-4">
+          商品を登録しました。続けてサイズ・在庫を追加してください。
+        </div>
+      )}
+
+      {product_updated && (
+        <div className="bg-green-50 text-green-700 text-sm rounded-md px-3 py-2 mb-4">
+          商品情報を更新しました。
+        </div>
+      )}
 
       {updated_size && (
         <div className="bg-green-50 text-green-700 text-sm rounded-md px-3 py-2 mb-4">
@@ -123,3 +140,4 @@ export default async function EditProductPage({
     </div>
   )
 }
+
