@@ -2,6 +2,7 @@
 //商品登録フォーム
 import { createProduct } from '../actions'
 import AdminNav from '@/components/AdminNav'
+import { CATEGORIES } from '@/lib/categories'
 
 export default function NewProductPage() {
   return (
@@ -19,6 +20,16 @@ export default function NewProductPage() {
 
         <label className="text-sm text-gray-600">カテゴリ</label>
         <input type="text" name="category" placeholder="Shoes" className="border rounded-md px-3 py-2" />
+
+        <label className="text-sm text-gray-600">カテゴリ</label>
+        <select name="category" required className="border rounded-md px-3 py-2">
+          <option value="">選択してください</option>
+          {CATEGORIES.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
 
         <label className="text-sm text-gray-600">価格</label>
         <input type="number" name="price" required className="border rounded-md px-3 py-2" />

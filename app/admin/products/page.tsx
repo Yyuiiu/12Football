@@ -5,15 +5,27 @@ import Link from 'next/link'
 import AdminNav from '@/components/AdminNav'
 import { archiveProduct } from './actions'
 import { formatSize } from '@/lib/format'
+import { CATEGORIES } from '@/lib/categories'
 
-export default async function AdminProductList() {
+export default async function AdminProductList({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>
+}) {
+  const { category } = await searchParams
   const supabase = await createClient()
 
-  const { data: products, error } = await supabase
+  let query = supabase
     .from('products')
     .select('*, product_variants(size, stock_quantity)')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
+
+  if (category) {
+    query = query.eq('category', category)
+  }
+
+  const { data: products, error } = await query
 
   return (
     <div className="p-6">
@@ -29,6 +41,28 @@ export default async function AdminProductList() {
             + 商品を追加
           </Link>
         </div>
+      </div>
+
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <Link
+          href="/admin/products"
+          className={`text-sm rounded-full px-3 py-1 border ${
+            !category ? 'bg-black text-white' : 'text-gray-600'
+          }`}
+        >
+          すべて
+        </Link>
+        {CATEGORIES.map((c) => (
+          <Link
+            key={c}
+            href={`/admin/products?category=${encodeURIComponent(c)}`}
+            className={`text-sm rounded-full px-3 py-1 border ${
+              category === c ? 'bg-black text-white' : 'text-gray-600'
+            }`}
+          >
+            {c}
+          </Link>
+        ))}
       </div>
 
       {error && <p className="text-red-500">エラー: {error.message}</p>}

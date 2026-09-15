@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { updateProduct, addVariant, updateVariantStock } from '../actions'
 import AdminNav from '@/components/AdminNav'
+import { CATEGORIES } from '@/lib/categories'
 
 export const revalidate = 0
 
@@ -81,6 +82,18 @@ export default async function EditProductPage({
 
         <label className="text-sm text-gray-600">カテゴリ</label>
         <input type="text" name="category" defaultValue={product.category} className="border rounded-md px-3 py-2" />
+
+        <label className="text-sm text-gray-600">カテゴリ</label>
+        <select name="category" defaultValue={product.category} required className="border rounded-md px-3 py-2">
+          <option value="">選択してください</option>
+          {CATEGORIES.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+
+
 
         <label className="text-sm text-gray-600">価格</label>
         <input type="number" name="price" defaultValue={product.price} required className="border rounded-md px-3 py-2" />
