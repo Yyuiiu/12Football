@@ -80,8 +80,6 @@ export default async function EditProductPage({
         <label className="text-sm text-gray-600">ブランド</label>
         <input type="text" name="brand" defaultValue={product.brand} className="border rounded-md px-3 py-2" />
 
-        <label className="text-sm text-gray-600">カテゴリ</label>
-        <input type="text" name="category" defaultValue={product.category} className="border rounded-md px-3 py-2" />
 
         <label className="text-sm text-gray-600">カテゴリ</label>
         <select name="category" defaultValue={product.category} required className="border rounded-md px-3 py-2">
