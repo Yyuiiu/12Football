@@ -50,26 +50,31 @@ export default async function AdminProductList({
         </div>
       </div>
 
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="flex gap-2 mb-3 flex-wrap">
         <Link
-          href="/admin/products"
+          href={brand ? `/admin/products?brand=${encodeURIComponent(brand)}` : '/admin/products'}
           className={`text-sm rounded-full px-3 py-1 border ${
             !category ? 'bg-black text-white' : 'text-gray-600'
           }`}
         >
           すべて
         </Link>
-        {CATEGORIES.map((c) => (
-          <Link
-            key={c}
-            href={`/admin/products?category=${encodeURIComponent(c)}`}
-            className={`text-sm rounded-full px-3 py-1 border ${
-              category === c ? 'bg-black text-white' : 'text-gray-600'
-            }`}
-          >
-            {c}
-          </Link>
-        ))}
+        {CATEGORIES.map((c) => {
+          const params = new URLSearchParams()
+          params.set('category', c)
+          if (brand) params.set('brand', brand)
+          return (
+            <Link
+              key={c}
+              href={`/admin/products?${params.toString()}`}
+              className={`text-sm rounded-full px-3 py-1 border ${
+                category === c ? 'bg-black text-white' : 'text-gray-600'
+              }`}
+            >
+              {c}
+            </Link>
+          )
+        })}
       </div>
 
       <div className="mb-4">
