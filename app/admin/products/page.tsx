@@ -6,14 +6,18 @@ import AdminNav from '@/components/AdminNav'
 import { archiveProduct } from './actions'
 import { formatSize } from '@/lib/format'
 import { CATEGORIES } from '@/lib/categories'
+import BrandFilter from '@/components/BrandFilter'
 
 export default async function AdminProductList({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string; brand?: string }>
 }) {
-  const { category } = await searchParams
+  const { category, brand } = await searchParams
   const supabase = await createClient()
+
+  const { data: allProducts } = await supabase.from('products').select('brand').eq('is_active', true)
+  const brands = Array.from(new Set(allProducts?.map((p) => p.brand).filter(Boolean))).sort()
 
   let query = supabase
     .from('products')
@@ -23,6 +27,9 @@ export default async function AdminProductList({
 
   if (category) {
     query = query.eq('category', category)
+  }
+  if (brand) {
+    query = query.eq('brand', brand)
   }
 
   const { data: products, error } = await query
@@ -63,6 +70,10 @@ export default async function AdminProductList({
             {c}
           </Link>
         ))}
+      </div>
+
+      <div className="mb-4">
+        <BrandFilter brands={brands} currentBrand={brand} currentCategory={category} />
       </div>
 
       {error && <p className="text-red-500">エラー: {error.message}</p>}
