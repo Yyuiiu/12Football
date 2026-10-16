@@ -18,9 +18,7 @@ export default function NewProductPage() {
         <label className="text-sm text-gray-600">ブランド</label>
         <input type="text" name="brand" className="border rounded-md px-3 py-2" />
 
-        <label className="text-sm text-gray-600">カテゴリ</label>
-        <input type="text" name="category" placeholder="Shoes" className="border rounded-md px-3 py-2" />
-
+      
         <label className="text-sm text-gray-600">カテゴリ</label>
         <select name="category" required className="border rounded-md px-3 py-2">
           <option value="">選択してください</option>
