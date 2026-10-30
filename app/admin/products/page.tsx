@@ -1,38 +1,55 @@
 // app/admin/products/page.tsx
 //管理用商品一覧
+
+// app/admin/products/page.tsx
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import AdminNav from '@/components/AdminNav'
-import { archiveProduct } from './actions'
-import { formatSize } from '@/lib/format'
+import FilterSelect from '@/components/FilterSelect'
 import { CATEGORIES } from '@/lib/categories'
-import BrandFilter from '@/components/BrandFilter'
+import { formatSize } from '@/lib/format'
+import { buildHref, sortSizes } from '@/lib/filters'
+
+type Variant = { size: string; stock_quantity: number }
 
 export default async function AdminProductList({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; brand?: string }>
+  searchParams: Promise<{ category?: string; brand?: string; size?: string }>
 }) {
-  const { category, brand } = await searchParams
+  const { category, brand, size } = await searchParams
   const supabase = await createClient()
 
-  const { data: allProducts } = await supabase.from('products').select('brand').eq('is_active', true)
-  const brands = Array.from(new Set(allProducts?.map((p) => p.brand).filter(Boolean))).sort()
-
-  let query = supabase
+  const { data, error } = await supabase
     .from('products')
     .select('*, product_variants(size, stock_quantity)')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 
-  if (category) {
-    query = query.eq('category', category)
-  }
-  if (brand) {
-    query = query.eq('brand', brand)
-  }
+  const allProducts = data ?? []
 
-  const { data: products, error } = await query
+  const brands = Array.from(new Set(allProducts.map((p) => p.brand).filter(Boolean))).sort() as string[]
+  const sizes = sortSizes(
+    Array.from(
+      new Set(
+        allProducts.flatMap((p) =>
+          (p.product_variants as Variant[]).filter((v) => v.stock_quantity >= 1).map((v) => v.size)
+        )
+      )
+    )
+  )
+
+  const products = allProducts.filter((p) => {
+    if (category && p.category !== category) return false
+    if (brand && p.brand !== brand) return false
+    if (size && !(p.product_variants as Variant[]).some((v) => v.size === size && v.stock_quantity >= 1)) {
+      return false
+    }
+    return true
+  })
+
+  const basePath = '/admin/products'
+  const currentParams = { category, brand, size }
 
   return (
     <div className="p-6">
@@ -52,43 +69,61 @@ export default async function AdminProductList({
 
       <div className="flex gap-2 mb-3 flex-wrap">
         <Link
-          href={brand ? `/admin/products?brand=${encodeURIComponent(brand)}` : '/admin/products'}
+          href={buildHref(basePath, { brand, size })}
           className={`text-sm rounded-full px-3 py-1 border ${
             !category ? 'bg-black text-white' : 'text-gray-600'
           }`}
         >
           すべて
         </Link>
-        {CATEGORIES.map((c) => {
-          const params = new URLSearchParams()
-          params.set('category', c)
-          if (brand) params.set('brand', brand)
-          return (
-            <Link
-              key={c}
-              href={`/admin/products?${params.toString()}`}
-              className={`text-sm rounded-full px-3 py-1 border ${
-                category === c ? 'bg-black text-white' : 'text-gray-600'
-              }`}
-            >
-              {c}
-            </Link>
-          )
-        })}
+        {CATEGORIES.map((c) => (
+          <Link
+            key={c}
+            href={buildHref(basePath, { category: c, brand, size })}
+            className={`text-sm rounded-full px-3 py-1 border ${
+              category === c ? 'bg-black text-white' : 'text-gray-600'
+            }`}
+          >
+            {c}
+          </Link>
+        ))}
       </div>
 
-      <div className="mb-4">
-        <BrandFilter brands={brands} currentBrand={brand} currentCategory={category} />
+      <div className="flex gap-2 mb-4 flex-wrap items-center">
+        <FilterSelect
+          name="brand"
+          allLabel="すべてのブランド"
+          options={brands.map((b) => ({ value: b, label: b }))}
+          current={brand}
+          basePath={basePath}
+          currentParams={currentParams}
+        />
+        <FilterSelect
+          name="size"
+          allLabel="すべてのサイズ"
+          options={sizes.map((s) => ({ value: s, label: formatSize(s) }))}
+          current={size}
+          basePath={basePath}
+          currentParams={currentParams}
+        />
+        {(category || brand || size) && (
+          <Link href={basePath} className="text-sm text-gray-500 underline">
+            絞り込みをクリア
+          </Link>
+        )}
       </div>
 
       {error && <p className="text-red-500">エラー: {error.message}</p>}
 
+      {products.length === 0 && !error && (
+        <p className="text-gray-400 text-sm">該当する商品がありません</p>
+      )}
+
       <div className="flex flex-col gap-2">
-        {products?.map((product) => {
-          const variants = product.product_variants as { size: string; stock_quantity: number }[]
+        {products.map((product) => {
+          const variants = product.product_variants as Variant[]
           const allSoldOut = variants.length > 0 && variants.every((v) => v.stock_quantity === 0)
           const inStockSizes = variants.filter((v) => v.stock_quantity >= 1).map((v) => v.size)
-          const archiveThisProduct = archiveProduct.bind(null, product.id)
 
           return (
             <div
