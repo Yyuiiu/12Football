@@ -1,16 +1,17 @@
 // app/admin/reservations/page.tsx
 //取置き一覧ページ
 
+
 import { createClient } from '@/lib/supabase/server'
 import { updateReservationStatus } from './actions'
-import AdminNav from '@/components/AdminNav'
 import { formatSize } from '@/lib/format'
+import Link from 'next/link'
 
 type ReservationRow = {
   id: string
   customer_name: string
   phone: string
-  email:string
+  email: string | null
   status: string
   created_at: string
   product_variants: {
@@ -21,7 +22,12 @@ type ReservationRow = {
   }
 }
 
-export default async function ReservationList() {
+export default async function ReservationList({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q } = await searchParams
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -29,12 +35,28 @@ export default async function ReservationList() {
     .select('*, product_variants(size, products(name))')
     .order('created_at', { ascending: false })
 
-  const reservations = (data ?? []) as unknown as ReservationRow[]
-  const pendingCount = reservations.filter((r) => r.status === 'pending').length
+  const allReservations = (data ?? []) as unknown as ReservationRow[]
+  const pendingCount = allReservations.filter((r) => r.status === 'pending').length
+
+  // 検索(名前・電話番号・メールアドレス)
+  const keyword = (q ?? '').trim().toLowerCase()
+  const keywordDigits = keyword.replace(/[\s-]/g, '')
+
+  const reservations = keyword
+    ? allReservations.filter((r) => {
+        const nameMatch = r.customer_name.toLowerCase().includes(keyword)
+        const emailMatch = (r.email ?? '').toLowerCase().includes(keyword)
+        const phoneMatch =
+          keywordDigits !== '' && r.phone.replace(/[\s-]/g, '').includes(keywordDigits)
+        return nameMatch || emailMatch || phoneMatch
+      })
+    : allReservations
 
   return (
     <div className="p-6 max-w-2xl">
-      <AdminNav backHref="/admin/dashboard" backLabel="管理画面トップ" />
+      <Link href="/admin/dashboard" className="text-sm text-gray-500 hover:text-black mb-4 inline-block">
+        ← 管理画面トップ
+      </Link>
 
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold">取り置き一覧</h1>
@@ -45,7 +67,37 @@ export default async function ReservationList() {
         )}
       </div>
 
+      <form action="/admin/reservations" method="get" className="flex gap-2 mb-2">
+        <input
+          type="search"
+          name="q"
+          defaultValue={q ?? ''}
+          placeholder="名前・電話番号・メールで検索"
+          className="border rounded-md px-3 py-2 text-sm flex-1"
+        />
+        <button type="submit" className="bg-black text-white rounded-md px-4 py-2 text-sm">
+          検索
+        </button>
+      </form>
+
+      {keyword && (
+        <div className="flex items-center gap-3 mb-4 text-sm text-gray-500">
+          <span>
+            「{q}」の検索結果：{reservations.length}件
+          </span>
+          <Link href="/admin/reservations" className="underline">
+            検索をクリア
+          </Link>
+        </div>
+      )}
+
       {error && <p className="text-red-500">エラー: {error.message}</p>}
+
+      {reservations.length === 0 && !error && (
+        <p className="text-gray-400 text-sm">
+          {keyword ? '該当する予約がありません' : '取り置きの予約はまだありません'}
+        </p>
+      )}
 
       <div className="flex flex-col gap-2">
         {reservations.map((r) => {
@@ -66,11 +118,13 @@ export default async function ReservationList() {
                 <p className="font-medium">
                   {r.customer_name} ・ {r.phone}
                 </p>
-                <p className="text-xs text-gray-400">{r.email}</p>
+                {r.email && <p className="text-xs text-gray-400">{r.email}</p>}
                 <p className="text-sm text-gray-500">
-                  {r.product_variants?.products?.name} / {formatSize(r.product_variants.size)}
+                  {r.product_variants?.products?.name} / {formatSize(r.product_variants?.size ?? '')}
                 </p>
-                
+                <p className="text-xs text-gray-400">
+                  {new Date(r.created_at).toLocaleDateString('ja-JP', { timeZone: 'Asia/Taipei' })} 申込
+                </p>
               </div>
 
               <div className="flex items-center gap-2">
